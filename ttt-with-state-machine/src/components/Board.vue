@@ -1,7 +1,7 @@
 <template>
   <div>
       <button v-if='gameState==""'  @click='beginGame'>Begin Game</button>
-    <h1>Current Player: {{ currentPlayer }}</h1>
+    <h1>Current Player: {{ playerNames[currentPlayer-1] }}</h1>
     <table>
       <tr v-for="(each_row, rindex) in board" v-bind:key="rindex">
         <td
@@ -22,6 +22,12 @@
             <button id='message-box-ok-button' @click="okPressed">OK</button>
         </div>
     </div>
+
+    <div id="ask-for-name" v-if="askingForName==true">
+        <label>{{question}}</label>
+        <input type="text" v-model="playerName"/>
+        <button id='ask-for-name-ok-button' @click='submitName'>OK</button>
+    </div>
   </div>
 </template>
 
@@ -35,7 +41,11 @@ export default {
       board: [],
       gameState: "",
       message:"",
-      nextAction: ()=>{}
+      nextAction: ()=>{},
+      askingForName: false,
+      playerName: '',
+      playerNames:[],
+      question:''
     };
   },
   watch: {
@@ -52,12 +62,31 @@ export default {
         this.remainingMoves = 9;
         this.message = "Press OK to begin";
         this.nextAction = () => {
-            this.gameState = 'playing'
+            this.gameState = 'ask_for_player1_name'
             // set message to blank to hide the message box
             this.message = '';
         }
         
-      } else if (this.gameState == 'finished') {
+      } else if (this.gameState == 'ask_for_player1_name') {
+          this.question = "Enter player 1 name"
+          this.askingForName = true;
+          this.nextAction = ()=> {
+              this.playerNames[0] = this.playerName;
+              this.askingForName = false;
+              this.gameState = "ask_for_player2_name"
+          };
+      } 
+      else if (this.gameState == 'ask_for_player2_name') {
+          this.question = "Enter player 2 name"
+          this.askingForName = true;
+          this.nextAction = ()=> {
+              this.playerNames[1] = this.playerName;
+              this.askingForName = false;
+              this.gameState = "playing"
+          };
+      } 
+      
+      else if (this.gameState == 'finished') {
           this.nextAction = () => {
               this.gameState ='new';
               this.message = '';
@@ -176,6 +205,9 @@ export default {
     },
     okPressed:function(){
         this.nextAction();
+    },
+    submitName:function(){
+        this.nextAction();
     }
   }
 };
@@ -190,7 +222,7 @@ td {
   text-align: center;
 }
 
-#message-box {
+#message-box, #ask-for-name {
     position: absolute;
     background-color: white;
     top: 50%;
@@ -202,4 +234,6 @@ td {
     min-height: 150px;
     border: 1px black solid;
 }
+
+
 </style>
