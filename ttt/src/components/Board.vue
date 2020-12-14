@@ -26,9 +26,15 @@ export default {
         ["", "", ""],
         ["", "", ""],
         ["", "", ""]
-      ]
+      ],
+      gameState:''
     };
   },
+  // when we display the component for the first time, mounted will be call on that particular component
+  mounted:function() {
+      this.gameState= 'new';
+  },
+
   methods: {
     putSymbol: function(rindex, cindex) {
       // if (this.currentPlayer == 1) {

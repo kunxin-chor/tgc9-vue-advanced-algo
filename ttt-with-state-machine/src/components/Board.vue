@@ -1,6 +1,7 @@
 <template>
   <div>
-    <h1>Currenet Player: {{ currentPlayer }}</h1>
+      <button v-if='gameState==""'  @click='beginGame'>Begin Game</button>
+    <h1>Current Player: {{ currentPlayer }}</h1>
     <table>
       <tr v-for="(each_row, rindex) in board" v-bind:key="rindex">
         <td
@@ -12,6 +13,15 @@
         </td>
       </tr>
     </table>
+
+    <div id='message-box' v-if="message != ''">
+        <div id="message-box-content">
+            {{message}}
+        </div>
+        <div>
+            <button id='message-box-ok-button' @click="okPressed">OK</button>
+        </div>
+    </div>
   </div>
 </template>
 
@@ -20,16 +30,45 @@ export default {
   data: function() {
     return {
       // player 1 is X and player 2 is O
-      currentPlayer: 1,
+      currentPlayer: 0,
       remainingMoves: 9,
-      board: [
-        ["", "", ""],
-        ["", "", ""],
-        ["", "", ""]
-      ]
+      board: [],
+      gameState: "",
+      message:"",
+      nextAction: ()=>{}
     };
   },
+  watch: {
+    gameState: function() {
+      console.log("game state is now " + this.gameState);
+      // after there has been a change in the gameState, we check what is the new state
+      if (this.gameState == 'new') {
+          this.board= [
+            ["", "", ""],
+            ["", "", ""],
+            ["", "", ""]
+        ];
+        this.currentPlayer = 1;
+        this.remainingMoves = 9;
+        this.message = "Press OK to begin";
+        this.nextAction = () => {
+            this.gameState = 'playing'
+            // set message to blank to hide the message box
+            this.message = '';
+        }
+        
+      } else if (this.gameState == 'finished') {
+          this.nextAction = () => {
+              this.gameState ='new';
+              this.message = '';
+          }
+      }
+    }
+  },
   methods: {
+    beginGame:function(){
+        this.gameState = 'new'
+    },
     putSymbol: function(rindex, cindex) {
       // if (this.currentPlayer == 1) {
       //     this.$set(this.board[rindex], cindex, 'X');
@@ -40,7 +79,7 @@ export default {
       //     this.currentPlayer =1;
       // }
 
-      if (this.board[rindex][cindex] == "") {
+      if (this.board[rindex][cindex] == "" && this.gameState =='playing') {
         this.$set(
           this.board[rindex],
           cindex,
@@ -62,7 +101,7 @@ export default {
           this.board[rowNumber][1] == this.board[rowNumber][2] &&
           this.board[rowNumber][0] != ""
         ) {
-          alert("Player " + this.board[rowNumber][0] + " has won!");
+          this.message = "Player " + this.board[rowNumber][0] + " has won!";
           someoneWon = true;
         }
 
@@ -73,7 +112,7 @@ export default {
           this.board[1][colNumber] == this.board[2][colNumber] &&
           this.board[2][colNumber] != ""
         ) {
-          alert("Player " + this.board[colNumber][0] + " has won!");
+          this.message = "Player " + this.board[colNumber][0] + " has won!";
           someoneWon = true;
         }
       }
@@ -83,36 +122,39 @@ export default {
         this.board[1][1] == this.board[2][2] &&
         this.board[0][0] != ""
       ) {
-        alert("Player " + this.board[0][0] + " has won!");
+       this.message = "Player " + this.board[0][0] + " has won!";
         someoneWon = true;
       }
 
       if (
-          this.board[0][2] == this.board[1][1] &&
-          this.board[1][1] == this.board[2][0] &&
-          this.board[0][2] != ''
+        this.board[0][2] == this.board[1][1] &&
+        this.board[1][1] == this.board[2][0] &&
+        this.board[0][2] != ""
       ) {
-           alert("Player " + this.board[0][2] + " has won!");
-           someoneWon = true;
+        this.message = "Player " + this.board[0][2] + " has won!";
+        someoneWon = true;
       }
 
-    //   if (someoneWon == false && this.remainingMoves == 0) {
-    //       alert("draw!");
-    //   }
+      //   if (someoneWon == false && this.remainingMoves == 0) {
+      //       alert("draw!");
+      //   }
 
-    if (someoneWon == false) {
+      if (someoneWon == false) {
         let numberOfEmptySquares = 0;
-        for (let i=0; i < 3; i++) {
-            for (let j=0; j<3; j++) {
-                if (this.board[i][j] == '') {
-                    numberOfEmptySquares++;
-                }
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            if (this.board[i][j] == "") {
+              numberOfEmptySquares++;
             }
+          }
         }
         if (numberOfEmptySquares == 0) {
-            alert('draw');
-        }
-    }
+          this.message="draw";
+          this.gameState='finished';        }
+      } else {
+          // if someone wins the game
+          this.gameState = 'finished'
+      }
 
       // for (let rowNumber = 0; rowNumber < 3; rowNumber++) {
       //        let previousSymbol = this.board[rowNumber][0];
@@ -131,6 +173,9 @@ export default {
       //         }
       //     }
       // }
+    },
+    okPressed:function(){
+        this.nextAction();
     }
   }
 };
@@ -143,5 +188,18 @@ td {
   font-size: 32px;
   border: 1px solid black;
   text-align: center;
+}
+
+#message-box {
+    position: absolute;
+    background-color: white;
+    top: 50%;
+    left: 50%;
+    padding: 20px;
+    margin: 10px;
+    transform: translate(-50%, -50%);
+    min-width: 200px;
+    min-height: 150px;
+    border: 1px black solid;
 }
 </style>
